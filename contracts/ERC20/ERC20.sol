@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import "./InterfaceERC20.sol";
 
-contract Token is ERC20 {
+contract ERC20 is IERC20 {
     address owner;
     uint totalTokens;
     mapping(address => uint) balances;
@@ -97,5 +97,19 @@ contract Token is ERC20 {
     function _beforeTokenTransfer(address from, address to, uint amount) internal virtual {
         
     }
-    
+}
+
+contract YarikToken is ERC20 {
+    constructor(address shop) ERC20("YarikToken", "YRK", 200, shop) { }
+}
+
+contract SomeShop {
+    IERC20 public token;
+    address payable public owner;
+    event Bought(uint amount, address indexed buyer);
+    event Sold(uint amount, address indexed seller);
+
+    constructor() {
+        token = new YarikToken(address(this));
+    }
 }

@@ -1,4 +1,4 @@
-# Sample Hardhat Project
+# Simple ERC standarts realization by myself.
 
-Simple ERC standarts realization by myself.
+Hardhat project.
 
