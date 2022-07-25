@@ -23,7 +23,7 @@ contract SomeShop {
 
     // user have to give permission (allowance) to take his tokens
     function sell(uint amountToSell) external {
-        require(amountToSell > 0, token.balanceOf(msg.sender) >= amountToSell, "incorrect amount");
+        require(amountToSell > 0 && token.balanceOf(msg.sender) >= amountToSell, "incorrect amount");
         uint allowance = token.allowance(msg.sender, address(this));
         require(allowance >= amountToSell, "check allowance"); 
 
