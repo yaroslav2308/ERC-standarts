@@ -22,24 +22,28 @@ contract SomeShop {
     }
 
     // user have to give permission (allowance) to take his tokens
-    function sell(uint amount) external {
-        require(amount > 0, token.balanceOf(msg.sender) >= amount, "incorrect amount");
+    function sell(uint amountToSell) external {
+        require(amountToSell > 0, token.balanceOf(msg.sender) >= amountToSell, "incorrect amount");
         uint allowance = token.allowance(msg.sender, address(this));
-        require(allowance >= amount, "check allowance");
+        require(allowance >= amountToSell, "check allowance"); 
 
-        token.transferFrom(msg.sender, recipient, amount);
+        token.transferFrom(msg.sender, address(this), amountToSell);
+        payable(msg.sender).transfer(amountToSell);
+
+        emit Sold(amountToSell, msg.sender);
     }
 
-    receive() external payable {
-        uint tokensToBuy = msg.value; // 1 wei = 1 token
-        require(tokensToBuy > 0, "not enough funds");
-
-        uint currentBalance = tokenBalance();
-        require(currentBalance >= tokensToBuy, "not enough tokens");
-
-        token.transfer(msg.sender, tokensToBuy);
-        emit Bought(tokensToBuy, msg.sender);
+    function tokenBalance() public view returns(uint) {
+        return token.balanceOf(address(this));
     }
-
     
+    receive() external payable {
+         // 1 wei = 1 token
+        require(msg.value > 0, "not enough funds");
+
+        require(tokenBalance() >= msg.value, "not enough tokens");
+
+        token.transfer(msg.sender, msg.value);
+        emit Bought(msg.value, msg.sender);
+    }
 }

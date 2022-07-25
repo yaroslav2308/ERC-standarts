@@ -16,7 +16,7 @@ contract ERC20 is IERC20 {
         return _name;
     }
 
-    function decimals() external view returns(uint) {
+    function decimals() external pure returns(uint) {
         return 18; // 
     }
 
@@ -59,7 +59,6 @@ contract ERC20 is IERC20 {
     }
 
     function transfer(address to, uint amount) external enoughTokens(msg.sender, amount) {
-        require(balances[msg.sender] >= amount);
         balances[msg.sender] -= amount;
         balances[to] += amount;
 
@@ -99,17 +98,3 @@ contract ERC20 is IERC20 {
     }
 }
 
-contract YarikToken is ERC20 {
-    constructor(address shop) ERC20("YarikToken", "YRK", 200, shop) { }
-}
-
-contract SomeShop {
-    IERC20 public token;
-    address payable public owner;
-    event Bought(uint amount, address indexed buyer);
-    event Sold(uint amount, address indexed seller);
-
-    constructor() {
-        token = new YarikToken(address(this));
-    }
-}

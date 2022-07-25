@@ -7,7 +7,7 @@ interface IERC20 {
 
     function symbol() external view returns(string memory); // short name
 
-    function decimals() external view returns(uint); // 18 (same as ether)
+    function decimals() external pure returns(uint); // 18 (same as ether)
 
     function totalSupply() external view returns(uint);
 
