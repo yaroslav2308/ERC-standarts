@@ -12,13 +12,18 @@ contract SomeShop {
     event Sold(uint amount, address indexed seller);
 
     constructor() {
-        token = new YarikToken(address(this));
         owner = payable(msg.sender);
+        token = new YarikToken(address(this));
     }
 
+    
     modifier onlyOwner() {
         require(msg.sender == owner, "address not an owner");
         _;
+    }
+
+    function setToken(address tokenAddress) public onlyOwner {
+        token = YarikToken(tokenAddress);
     }
 
     // user have to give permission (allowance) to take his tokens
