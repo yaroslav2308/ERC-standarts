@@ -7,22 +7,29 @@ describe("", function() {
     let owner
     let buyer
     let shop
-    let erc20
+    // let erc20
+    let token
 
     beforeEach(async function() {
-        [owner, buyer] = await ethers.getSigners()
+        [owner, buyer, shopOwner] = await ethers.getSigners()
 
-        const SomeShop = await ethers.getContractFactory("SomeShop", owner)
+        const SomeShop = await ethers.getContractFactory("SomeShop", shopOwner)
         shop = await SomeShop.deploy()
         await shop.deployed()
 
-        erc20 = new ethers.Contract(await shop.token(), tokenJSON.abi, owner)
+        const YarikToken = await ethers.getContractFactory("YarikToken", owner)
+        token = await YarikToken.deploy(shop.address)
+        await token.deployed()
+
+        shop.setToken(token.address)
+
+        // erc20 = new ethers.Contract(await shop.token(), tokenJSON.abi, owner)
     })
 
     it("should have an owner and a token", async function() {
-        expect(await shop.owner()).to.eq(owner.address)
+        expect(await shop.owner()).to.eq(shopOwner.address)
         
-        expect(await shop.token()).to.be.properAddress
+        expect(await shop.token()).to.eq(token.address)
     })
 
     it("should be able to buy tokens", async function() {
@@ -35,7 +42,7 @@ describe("", function() {
         const tx = await buyer.sendTransaction(txData)
         await tx.wait()
 
-        expect(await erc20.balanceOf(buyer.address)).to.eq(amount)
+        expect(await token.balanceOf(buyer.address)).to.eq(amount)
 
         await expect(() => tx).
             to.changeEtherBalance(shop, amount)
@@ -57,13 +64,13 @@ describe("", function() {
 
         const amountToSell = 5
 
-        const approval = await erc20.connect(buyer).approve(shop.address, amountToSell)
+        const approval = await token.connect(buyer).approve(shop.address, amountToSell)
 
         await approval.wait()
 
         const sellTx = await shop.connect(buyer).sell(amountToSell)
 
-        expect(await erc20.balanceOf(buyer.address)).to.eq(amount - amountToSell)
+        expect(await token.balanceOf(buyer.address)).to.eq(amount - amountToSell)
 
         await expect(() => sellTx).
             to.changeEtherBalance(shop, -amountToSell)
