@@ -1,8 +1,6 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
 
-const tokenJSON = require("../artifacts/contracts/ERC20/YarikToken.sol/YarikToken.json")
-
 describe("ERC20Tests", function() {
     let owner
     let buyer
