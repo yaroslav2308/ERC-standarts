@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 
-import "../InterfaceERC20.sol";
+import "../IERC20.sol";
 import "../YarikToken.sol";
 
 contract SomeShopERC20 {
