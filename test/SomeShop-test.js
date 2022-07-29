@@ -3,7 +3,7 @@ const { ethers } = require("hardhat")
 
 const tokenJSON = require("../artifacts/contracts/ERC20/YarikToken.sol/YarikToken.json")
 
-describe("", function() {
+describe("ERC20Tests", function() {
     let owner
     let buyer
     let shop
@@ -13,7 +13,7 @@ describe("", function() {
     beforeEach(async function() {
         [owner, buyer, shopOwner] = await ethers.getSigners()
 
-        const SomeShop = await ethers.getContractFactory("SomeShop", shopOwner)
+        const SomeShop = await ethers.getContractFactory("SomeShopERC20", shopOwner)
         shop = await SomeShop.deploy()
         await shop.deployed()
 

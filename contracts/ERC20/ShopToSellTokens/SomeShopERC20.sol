@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import "../InterfaceERC20.sol";
 import "../YarikToken.sol";
 
-contract SomeShop {
+contract SomeShopERC20 {
     IERC20 public token;
     address payable public owner;
     event Bought(uint amount, address indexed buyer);
