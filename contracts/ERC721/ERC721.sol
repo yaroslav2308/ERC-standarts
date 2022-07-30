@@ -3,8 +3,9 @@
 pragma solidity ^0.8.0;
 
 import "./IERC721MetaData.sol";
+import "./IERC721Receiver.sol";
 
-contract ERC721 is ERC721MetaData {
+contract ERC721 is IERC721MetaData {
     string public name;
     string public symbol;
     
@@ -37,6 +38,16 @@ contract ERC721 is ERC721MetaData {
         _safeTransfer(from, to, tokenId);
     }
 
+    function approve(address to, uint tokenId) public {
+        address _owner = ownnerOf(tokenId);
+        require(_owner == msg.sender || isApprovedForAll(_owner, msg.sender), "not an owner or approved");
+        require(to != _owner, "cannot make approval to yourself");
+
+        _tokenApprovals[tokenId] = to;
+
+        emit Approval(_owner, to, tokenId);
+    }
+
     function ownnerOf(uint tokenId) public view _requireMinted(tokenId) returns(address) {
         return _owners[tokenId];
     }
@@ -54,19 +65,31 @@ contract ERC721 is ERC721MetaData {
         return _tokenApprovals[tokenId];
     }
 
+    // function _safeMint(address to, uint tokenId) internal virtual {
+    //     _mint
+    // }
+
     function _safeTransfer(address from, address to, uint tokenId) internal { 
         _transfer(from, to, tokenId);
 
         require(_checkOnERC721Received(from, to, tokenId), "non erc721 reciever");
     }
 
+    //function for safe transfer to check if receiver is able to get nfts
     function _checkOnERC721Received(address from, address to, uint tokenId) private returns(bool) {
         if(to.code.length > 0) {
-           try  returns () {
-            
-           } catch  {
-            
-           }
+            try IERC721Receiver(to).onERC721Received(msg.sender, from, tokenId, bytes("")) returns(bytes4 ret) {
+                return ret == IERC721Receiver.onERC721Received.selector;
+            } catch(bytes memory reason)  {
+                if (reason.length == 0) {
+                    // receiver do not implement interface IERC721Receiver (do not have onERC721Received function)
+                    revert("non ERC721Receiver");
+                } else {
+                    assembly {
+                        revert(add(32, reason), mload(reason))
+                    }
+                }
+            }
         } else {
             return true;
         }
