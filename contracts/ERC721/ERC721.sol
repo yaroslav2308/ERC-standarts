@@ -4,8 +4,11 @@ pragma solidity ^0.8.0;
 
 import "./IERC721MetaData.sol";
 import "./IERC721Receiver.sol";
+import "./StringsLibrary.sol";
 
 contract ERC721 is IERC721MetaData {
+    using Strings for uint256;
+
     string public name;
     string public symbol;
     
@@ -24,8 +27,6 @@ contract ERC721 is IERC721MetaData {
         symbol = _symbol;
     }
 
-    
-
     function transferFrom(address from, address to, uint tokenId) external {
         require(_isApprovedOrOwner(msg.sender, tokenId), "not an owner or approved");
 
@@ -38,8 +39,19 @@ contract ERC721 is IERC721MetaData {
         _safeTransfer(from, to, tokenId);
     }
 
+    function tokenURI(uint tokenId) public view _requireMinted(tokenId) returns(string memory) {
+        string memory baseURI = _baseURI();
+
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : ""; 
+    }
+
+    // ipfs://someStuff/ (could be)
+    function _baseURI() internal pure virtual returns(string memory) {
+        return "";
+    }
+
     function approve(address to, uint tokenId) public {
-        address _owner = ownnerOf(tokenId);
+        address _owner = ownerOf(tokenId);
         require(_owner == msg.sender || isApprovedForAll(_owner, msg.sender), "not an owner or approved");
         require(to != _owner, "cannot make approval to yourself");
 
@@ -48,7 +60,7 @@ contract ERC721 is IERC721MetaData {
         emit Approval(_owner, to, tokenId);
     }
 
-    function ownnerOf(uint tokenId) public view _requireMinted(tokenId) returns(address) {
+    function ownerOf(uint tokenId) public view _requireMinted(tokenId) returns(address) {
         return _owners[tokenId];
     }
 
@@ -65,9 +77,36 @@ contract ERC721 is IERC721MetaData {
         return _tokenApprovals[tokenId];
     }
 
-    // function _safeMint(address to, uint tokenId) internal virtual {
-    //     _mint
-    // }
+    function setApprovalForAll(address operator, bool approved) public {
+        require(msg.sender != operator, "cannot approve to self");
+
+        _operatorApprovals[msg.sender][operator] = approved;
+
+        emit ApprovalForAll(msg.sender, operator, approved);
+    }
+
+    function burn(uint tokenId) public virtual {
+        require(_isApprovedOrOwner(msg.sender, tokenId), "not an owner or approved");
+        address owner = ownerOf(tokenId);
+
+        delete _tokenApprovals[tokenId];
+        _balances[owner]--;
+        delete _owners[tokenId];
+    }
+
+    function _safeMint(address to, uint tokenId) internal virtual {
+        _mint(to, tokenId);
+
+        require(_checkOnERC721Received(msg.sender, to, tokenId), "non erc721 reciever");
+    }
+
+    function _mint(address to, uint tokenId) internal virtual {
+        require(to != address(0), "zero address");
+        require(!_exists(tokenId), "exists");
+
+        _owners[tokenId] = to;
+        _balances[to]++;
+    }
 
     function _safeTransfer(address from, address to, uint tokenId) internal { 
         _transfer(from, to, tokenId);
@@ -96,7 +135,7 @@ contract ERC721 is IERC721MetaData {
     }
 
     function _transfer(address from, address to, uint tokenId) internal { 
-        require(ownnerOf(tokenId) == from, "not an owner");
+        require(ownerOf(tokenId) == from, "not an owner");
         require(to != address(0), "zero address");
 
         _beforeTokenTransfer(from, to, tokenId);
