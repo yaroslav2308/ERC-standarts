@@ -158,8 +158,7 @@ contract ERC721 is IERC721MetaData {
     function _isApprovedOrOwner(address spender, uint tokenId) internal view returns(bool) {
         address owner = ownerOf(tokenId);
 
-        require(spender == owner || isApprovedForAll(owner, spender) || getApproved(tokenId) == spender, "not an owner or approved");
-        // return true;
+        return spender == owner || isApprovedForAll(owner, spender) || getApproved(tokenId) == spender;
     }
 
     
